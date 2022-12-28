@@ -13,23 +13,26 @@ export function loadPdf(url, setPdfRef) {
   });
 }
 
-export function renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2) {
+export function renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, pdfWidth) {
   pdf && pdf.getPage(pageNum).then(function(page) {
     let viewport = page.getViewport({scale: 1});
-    const ratio = (window.innerWidth * .8)/viewport.width
+    //pdf width
+    const ratio = (window.innerWidth * pdfWidth)/viewport.width
     viewport = page.getViewport({scale: ratio})
 
     const renderContext = { canvasContext: ctx2, viewport };
-    page.render(renderContext)
+    if(ctx2) {
+      page.render(renderContext)
+      const savedCanvas = localStorage.getItem('savedCanvas' + pageNum)
+      if(savedCanvas) img.src = savedCanvas
 
-    const savedCanvas = localStorage.getItem('savedCanvas' + pageNum)
-    if(savedCanvas) img.src = savedCanvas
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
 
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
+      canvas2.height = viewport.height;
+      canvas2.width = viewport.width;
+    }
 
-    canvas2.height = viewport.height;
-    canvas2.width = viewport.width;
 
   });
 }

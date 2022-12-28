@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { loadPdf, renderPdf } from './pdf.js'
+import { renderPdf } from './pdf.js'
 
-export default function PdfViewer({url}){
+export default function PdfViewer({ pdfRef }){
 
   const [canvas, setCanvas] = useState()
   const [ctx, setCtx] =  useState()
@@ -11,21 +11,23 @@ export default function PdfViewer({url}){
   const [ctx2, setCtx2] =  useState()
   const canvasRef2 = useRef();
 
-  const [pdfRef, setPdfRef] = useState();
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [pdfWidth, setPdfWidth] = useState(.9)
 
   let lineWidth = 1.51
 
 
   const img = useMemo(()=> new Image(), [])
   img.onload = function() {
+    let canvas = canvasRef.current
     ctx.globalCompositeOperation = 'source-over'
-    ctx.drawImage(img,0,0)
+    ctx.drawImage(img,0,0, canvas.width, canvas.height)
   }
 
   const renderPage = useCallback((pageNum, pdf=pdfRef) => {
-    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2)
-  }, [pdfRef, canvas, img, canvas2, ctx2]);
+    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, pdfWidth)
+  }, [pdfRef, canvas, img, canvas2, ctx2, pdfWidth]);
 
   useEffect(() => {
     setCanvas(canvasRef.current)
@@ -38,8 +40,6 @@ export default function PdfViewer({url}){
     // eslint-disable-next-line react-hooks/exhaustive-deps
     lineWidth = 1.51
   }, [pdfRef, currentPage, renderPage]);
-
-  useEffect(() => { loadPdf(url, setPdfRef) }, [url]);
 
   useEffect(() => {
 
@@ -121,14 +121,27 @@ export default function PdfViewer({url}){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  const widthUp = () => {
+    setPdfWidth(pdfWidth + .01)
+  }
+
+  const widthDown = () => {
+    setPdfWidth(pdfWidth - .01)
+  }
+
   return (
     <div className='pageContainer' >
       <div className='arrowContainer'>
-        <div className='arrow' onClick={prevPage} >{`<`}</div>
+        <div id='left' className='arrow' onClick={prevPage} >{`<`}</div>
         <button onClick={handleErase} >toggle</button>
         <button onClick={saveCanvas} >save</button>
         <button onClick={clearCanvas} >clear</button>
-        <div className='arrow' onClick={nextPage} >{`>`}</div>
+        <div id='right' className='arrow' onClick={nextPage} >{`>`}</div>
+      </div>
+      <div className='counter' >
+        <button onClick={widthDown}>-</button>
+        {'Width'}
+        <button onClick={widthUp}>+</button>
       </div>
 
       <div className='sheetMusic' >

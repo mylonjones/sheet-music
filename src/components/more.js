@@ -1,11 +1,28 @@
+// import PdfViewer from './pdfViewer.js'
 import React, { useState, useEffect } from 'react'
-import PdfViewer from './pdfViewer.js'
+import ViewOnly from './viewOnly.js'
 
+import { loadPdf } from './pdf.js'
 
 
 
 export default function More() {
   const [url, setUrl] = useState();
+
+  const [pdfRef, setPdfRef] = useState();
+  const [pageArr, setPageArr] = useState();
+
+  useEffect(() => { url && loadPdf(url, setPdfRef) }, [url]);
+
+  useEffect(() => {
+    if(pdfRef){
+      let arr = []
+      for (let i = 1; i <= pdfRef.numPages; i++) {
+        arr.push(i)
+      }
+      setPageArr(arr)
+    }
+  }, [pdfRef])
 
   async function getFile(e) {
 
@@ -29,8 +46,6 @@ export default function More() {
     }
   }
 
-
-
   useEffect(() => {
     async function checkFileSystem() {
       try {
@@ -48,7 +63,10 @@ export default function More() {
   return (
     <div className='filePicker' >
       <div className='pdfDisplay' >
-        {url && <PdfViewer url={url} />}
+        {/* {url && <PdfViewer pdfRef={pdfRef} />} */}
+        {pageArr && pageArr.map((pageNum, index) => {
+          return (<ViewOnly pageNum={pageNum} pdfRef={pdfRef} key={index} />)
+        })}
       </div>
       <input
         type='file'
