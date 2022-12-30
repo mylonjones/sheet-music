@@ -1,8 +1,8 @@
-// import PdfViewer from './pdfViewer.js'
 import React, { useState, useEffect } from 'react'
+import PdfViewer from './pdfViewer.js'
 import ViewOnly from './viewOnly.js'
 
-import { loadPdf } from './pdf.js'
+import { loadPdf, renderPdf } from './pdf.js'
 
 
 
@@ -11,6 +11,10 @@ export default function More() {
 
   const [pdfRef, setPdfRef] = useState();
   const [pageArr, setPageArr] = useState();
+  const [mode, setMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [pdfWidth, setPdfWidth] = useState(.99)
 
   useEffect(() => { url && loadPdf(url, setPdfRef) }, [url]);
 
@@ -60,12 +64,46 @@ export default function More() {
      checkFileSystem()
   }, [])
 
+  function switchMode()  {
+    if(mode) {
+      setMode(false)
+    } else {
+      setMode(true)
+    }
+  }
+
+  const widthUp = () => {
+    setPdfWidth(pdfWidth + .01)
+  }
+
+  const widthDown = () => {
+    setPdfWidth(pdfWidth - .01)
+  }
+
+  const nextPage = () => pdfRef && currentPage < pdfRef.numPages && setCurrentPage(currentPage + 1);
+
+  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
+
   return (
     <div className='filePicker' >
+      <div className='arrowContainer'>
+        <div id='left' className='arrow' onClick={prevPage} >{`<`}</div>
+        <button className='switchMode' onClick={switchMode} >
+        Switch Mode
+        </button>
+        <div id='right' className='arrow' onClick={nextPage} >{`>`}</div>
+      </div>
+
+      <div className='counter' >
+        <button onClick={widthDown}>-</button>
+        {'Width'}
+        <button onClick={widthUp}>+</button>
+      </div>
+
       <div className='pdfDisplay' >
-        {/* {url && <PdfViewer pdfRef={pdfRef} />} */}
-        {pageArr && pageArr.map((pageNum, index) => {
-          return (<ViewOnly pageNum={pageNum} pdfRef={pdfRef} key={index} />)
+        {url && !mode && <PdfViewer pdfWidth={pdfWidth} currentPage={currentPage} pdfRef={pdfRef} renderPdf={renderPdf} />}
+        {pageArr && mode && pageArr.map((pageNum, index) => {
+          return (<ViewOnly pdfWidth={pdfWidth} pageNum={pageNum} pdfRef={pdfRef} key={index} renderPdf={renderPdf} />)
         })}
       </div>
       <input

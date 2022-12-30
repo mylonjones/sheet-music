@@ -73,7 +73,7 @@ To do...
 
 X make pdfs wider
 
-make pdfs scroll
+X make pdfs scroll
 
 add eye tracking
 
@@ -88,3 +88,5 @@ X add page width adjuster
 add line width adjuster
 
 add eraser cursor
+
+speed up width adjustment

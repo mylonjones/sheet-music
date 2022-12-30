@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { renderPdf } from './pdf.js'
 
-export default function PdfViewer({ pdfRef }){
+export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
 
   const [canvas, setCanvas] = useState()
   const [ctx, setCtx] =  useState()
@@ -11,9 +10,7 @@ export default function PdfViewer({ pdfRef }){
   const [ctx2, setCtx2] =  useState()
   const canvasRef2 = useRef();
 
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const [pdfWidth, setPdfWidth] = useState(.9)
 
   let lineWidth = 1.51
 
@@ -27,7 +24,7 @@ export default function PdfViewer({ pdfRef }){
 
   const renderPage = useCallback((pageNum, pdf=pdfRef) => {
     renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, pdfWidth)
-  }, [pdfRef, canvas, img, canvas2, ctx2, pdfWidth]);
+  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2, pdfWidth]);
 
   useEffect(() => {
     setCanvas(canvasRef.current)
@@ -96,9 +93,7 @@ export default function PdfViewer({ pdfRef }){
     ctx.moveTo(position.x, position.y)
   }
 
-  const nextPage = () => pdfRef && currentPage < pdfRef.numPages && setCurrentPage(currentPage + 1);
 
-  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
 
   const handleErase = () => {
     let color = ctx.globalCompositeOperation
@@ -121,28 +116,16 @@ export default function PdfViewer({ pdfRef }){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
-  const widthUp = () => {
-    setPdfWidth(pdfWidth + .01)
-  }
 
-  const widthDown = () => {
-    setPdfWidth(pdfWidth - .01)
-  }
 
   return (
     <div className='pageContainer' >
       <div className='arrowContainer'>
-        <div id='left' className='arrow' onClick={prevPage} >{`<`}</div>
         <button onClick={handleErase} >toggle</button>
         <button onClick={saveCanvas} >save</button>
         <button onClick={clearCanvas} >clear</button>
-        <div id='right' className='arrow' onClick={nextPage} >{`>`}</div>
       </div>
-      <div className='counter' >
-        <button onClick={widthDown}>-</button>
-        {'Width'}
-        <button onClick={widthUp}>+</button>
-      </div>
+
 
       <div className='sheetMusic' >
         <canvas ref={canvasRef2} />
