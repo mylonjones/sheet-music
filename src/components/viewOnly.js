@@ -18,8 +18,8 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
   }
 
   const renderPage = useCallback((pageNum, pdf=pdfRef) => {
-    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, pdfWidth)
-  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2, pdfWidth]);
+    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2)
+  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2]);
 
   useEffect(() => {
     setCanvas(canvasRef.current)
@@ -29,6 +29,19 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
     setCtx2(canvasRef2.current.getContext('2d'))
     renderPage(pageNum, pdfRef);
 
+    const intervalID = setInterval(()=>{
+      console.log('testing width')
+      if(canvasRef.current.width !== '') {
+        if(document.querySelector('style').sheet.cssRules[0].selectorText
+        !== 'body') {
+          document.querySelector('style').sheet.deleteRule(0)
+        }
+        document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * pdfWidth}px; }`)
+        clearInterval(intervalID)
+      }
+    }, 1000)
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pdfRef, pageNum, renderPage]);
 
 
@@ -36,9 +49,9 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
   return (
     <div className='pageContainer' id={`page${pageNum}`} >
       <div className='sheetMusic' >
-        <canvas ref={canvasRef2} />
+        <canvas ref={canvasRef2} className='canvas' />
         <canvas
-          className='drawing'
+          className='drawing canvas'
           ref={canvasRef}
         ></canvas>
       </div>

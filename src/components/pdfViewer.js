@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 
-export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
+export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth, addHandlers}){
 
   const [canvas, setCanvas] = useState()
   const [ctx, setCtx] =  useState()
@@ -9,7 +9,6 @@ export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
   const [canvas2, setCanvas2] = useState()
   const [ctx2, setCtx2] =  useState()
   const canvasRef2 = useRef();
-
 
 
   let lineWidth = 1.51
@@ -23,8 +22,8 @@ export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
   }
 
   const renderPage = useCallback((pageNum, pdf=pdfRef) => {
-    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, pdfWidth)
-  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2, pdfWidth]);
+    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2)
+  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2]);
 
   useEffect(() => {
     setCanvas(canvasRef.current)
@@ -36,6 +35,19 @@ export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     lineWidth = 1.51
+
+
+    const intervalID = setInterval(()=>{
+      console.log('testing width')
+      if(canvasRef.current.width !== '') {
+        if(document.querySelector('style').sheet.cssRules[0].selectorText
+        !== 'body') {
+          document.querySelector('style').sheet.deleteRule(0)
+        }
+        document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * pdfWidth}px; }`)
+        clearInterval(intervalID)
+      }
+    }, 1000)
   }, [pdfRef, currentPage, renderPage]);
 
   useEffect(() => {
@@ -56,6 +68,13 @@ export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
       }
     }, {passive: false});
 
+    addHandlers({
+      handleErase,
+      handleDraw,
+      saveCanvas,
+      clearCanvas
+    }, currentPage)
+
   })
 
   let drawing = false
@@ -65,7 +84,7 @@ export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
     let sheetMusic = document.getElementsByClassName('sheetMusic')[0]
 
     return {
-      x: (e.clientX || touch.clientX) - sheetMusic.offsetLeft, y: (e.clientY || touch.clientY) - sheetMusic.offsetTop + window.scrollY
+      x: ((e.clientX || touch.clientX) - sheetMusic.offsetLeft) / pdfWidth, y: ((e.clientY || touch.clientY) - sheetMusic.offsetTop + window.scrollY) / pdfWidth
     }
   }
 
@@ -96,14 +115,13 @@ export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
 
 
   const handleErase = () => {
-    let color = ctx.globalCompositeOperation
-    if(color !== 'source-over') {
-      ctx.globalCompositeOperation = 'source-over'
-      lineWidth = 1.51
-    } else {
-      ctx.globalCompositeOperation = 'destination-out'
-      lineWidth = 10
-    }
+    ctx.globalCompositeOperation = 'destination-out'
+    lineWidth = 10
+  }
+
+  const handleDraw = () => {
+    ctx.globalCompositeOperation = 'source-over'
+    lineWidth = 1.51
   }
 
   const saveCanvas = () => {
@@ -120,17 +138,10 @@ export default function PdfViewer({ pdfRef, renderPdf, currentPage, pdfWidth}){
 
   return (
     <div className='pageContainer' >
-      <div className='arrowContainer'>
-        <button onClick={handleErase} >toggle</button>
-        <button onClick={saveCanvas} >save</button>
-        <button onClick={clearCanvas} >clear</button>
-      </div>
-
-
       <div className='sheetMusic' >
-        <canvas ref={canvasRef2} />
+        <canvas ref={canvasRef2} className='canvas' />
         <canvas
-          className='drawing'
+          className='drawing canvas'
           ref={canvasRef}
           onMouseDown={startPosition}
           onMouseUp={finishedPosition}

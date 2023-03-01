@@ -13,11 +13,11 @@ export function loadPdf(url, setPdfRef) {
   });
 }
 
-export function renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, pdfWidth) {
+export function renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2) {
   pdf && pdf.getPage(pageNum).then(function(page) {
     let viewport = page.getViewport({scale: 1});
     //pdf width
-    const ratio = (window.innerWidth * pdfWidth)/viewport.width
+    const ratio = (window.innerWidth)/viewport.width
     viewport = page.getViewport({scale: ratio})
 
     const renderContext = { canvasContext: ctx2, viewport };

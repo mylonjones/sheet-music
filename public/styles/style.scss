@@ -3,6 +3,54 @@ body {
   background-color: #bdbdbd;
 }
 
+.toolBar {
+  height: 85px;
+  background-color: white;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20PX;
+
+}
+
+.group {
+  transition: background-color .35s linear;
+  height: 70px;
+  background-color: white;
+  border-radius: 16px;
+  width: fit-content;
+  padding: 0 10px;
+  display: flex;
+  align-content: center;
+  align-items: center;
+}
+
+
+.icon {
+  transition: opacity .35s linear, margin .35s linear;
+  opacity: 0;
+  width: 50px;
+  z-index: 1;
+  margin-left: -50px;
+}
+
+.firstIcon {
+  margin: 0;
+}
+
+.groupIcon {
+  opacity: 1;
+  z-index: 0;
+}
+
+
+
+.mainTools {
+  display: flex;
+}
+
+
 
 
 
@@ -19,7 +67,13 @@ body {
   }
 }
 
+.scrollControl {
+  overflow-y: hidden;
+}
+
 .pageContainer {
+
+  transition: transform 5s linear;
   display: flex;
   flex-direction: column;
   align-items: center;
