@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 
-export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
+export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandlers }){
 
   const [canvas, setCanvas] = useState()
   const [ctx, setCtx] =  useState()
@@ -9,6 +9,9 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
   const [canvas2, setCanvas2] = useState()
   const [ctx2, setCtx2] =  useState()
   const canvasRef2 = useRef();
+
+
+  let lineWidth = 1.51
 
   const img = useMemo(()=> new Image(), [])
   img.onload = function() {
@@ -29,8 +32,11 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
     setCtx2(canvasRef2.current.getContext('2d'))
     renderPage(pageNum, pdfRef);
 
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    lineWidth = 1.51
+
     const intervalID = setInterval(()=>{
-      console.log('testing width')
       if(canvasRef.current.width !== '') {
         if(document.querySelector('style').sheet.cssRules[0].selectorText
         !== 'body') {
@@ -45,6 +51,91 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
   }, [pdfRef, pageNum, renderPage]);
 
 
+  useEffect(() => {
+
+    document.body.addEventListener("touchstart", function (e) {
+      if (e.target === canvas) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+    document.body.addEventListener("touchend", function (e) {
+      if (e.target === canvas) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+    document.body.addEventListener("touchmove", function (e) {
+      if (e.target === canvas) {
+        e.preventDefault();
+      }
+    }, {passive: false});
+
+    addHandlers({
+      handleErase,
+      handleDraw,
+      saveCanvas,
+      clearCanvas
+    }, pageNum)
+
+  })
+
+  let drawing = false
+
+  function getMousePos(e) {
+    let touch = e.touches && e.touches[0]
+    let offsetLeft = document.getElementsByClassName('sheetMusic')[0].offsetLeft
+
+    let offsetTop = document.getElementsByClassName('pageContainer')[0].offsetTop
+
+    return {
+      x: ((e.clientX || touch.clientX) - offsetLeft) / pdfWidth, y: ((e.clientY || touch.clientY) - offsetTop + window.scrollY) / pdfWidth
+    }
+  }
+
+  function startPosition(e){
+    drawing = true
+    draw(e)
+  }
+
+  function finishedPosition(e) {
+    drawing = false
+    ctx.beginPath()
+  }
+
+  function draw(e) {
+    if(!drawing) return
+    let position = getMousePos(e)
+
+    ctx.lineWidth = lineWidth
+    ctx.lineCap = 'round'
+
+    ctx.lineTo(position.x, position.y)
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(position.x, position.y)
+  }
+
+
+
+  const handleErase = () => {
+    ctx.globalCompositeOperation = 'destination-out'
+    lineWidth = 10
+  }
+
+  const handleDraw = () => {
+    ctx.globalCompositeOperation = 'source-over'
+    lineWidth = 1.51
+  }
+
+  const saveCanvas = () => {
+    localStorage.setItem('savedCanvas' + pageNum, canvas.toDataURL('image/png'))
+  }
+
+
+  const clearCanvas = () => {
+    localStorage.removeItem('savedCanvas' + pageNum)
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
 
   return (
     <div className='pageContainer' id={`page${pageNum}`} >
@@ -53,6 +144,12 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth }){
         <canvas
           className='drawing canvas'
           ref={canvasRef}
+          onMouseDown={startPosition}
+          onMouseUp={finishedPosition}
+          onMouseMove={draw}
+          onTouchStart={startPosition}
+          onTouchEnd={finishedPosition}
+          onTouchMove={draw}
         ></canvas>
       </div>
     </div>

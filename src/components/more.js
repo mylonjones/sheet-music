@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import PdfViewer from './pdfViewer.js'
 import ViewOnly from './viewOnly.js'
 
 import { loadPdf, renderPdf } from './pdf.js'
@@ -7,6 +6,7 @@ import { loadPdf, renderPdf } from './pdf.js'
 import eraser from '../icons/eraser.png'
 import pencil from '../icons/whitePencil.png'
 import trash from '../icons/trash.png'
+import disk from '../icons/disk.png'
 import toolBox from '../icons/tool-box.png'
 
 import up from '../icons/up.png'
@@ -18,17 +18,22 @@ import zoomIn from '../icons/zoom-in.png'
 import zoomOut from '../icons/zoom-out.png'
 import zoom from '../icons/search.png'
 
+import file from '../icons/file.svg'
+
 export default function More() {
   const [url, setUrl] = useState();
 
   const [pdfRef, setPdfRef] = useState();
   const [pageArr, setPageArr] = useState();
-  const [mode, setMode] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1)
 
   const [pdfWidth, setPdfWidth] = useState(.9)
 
   const [canvasHandlers, setHandlers] = useState([])
+
+  const [translate, setTranslate] = useState(0)
+
+  const [fileName, setFileName] = useState('')
 
   useEffect(() => { url && loadPdf(url, setPdfRef) }, [url]);
 
@@ -60,6 +65,7 @@ export default function More() {
     } catch (e) {
       console.log(e)
     } finally {
+      setFileName(e.target.value.slice(12, -4))
       setUrl(URL.createObjectURL(file))
     }
   }
@@ -78,14 +84,6 @@ export default function More() {
      checkFileSystem()
   }, [])
 
-  function switchMode()  {
-    if(mode) {
-      setMode(false)
-    } else {
-      setMode(true)
-    }
-  }
-
   const widthUp = () => {
     setPdfWidth(pdfWidth + .01)
     document.querySelector('style').sheet.deleteRule(0)
@@ -98,25 +96,29 @@ export default function More() {
     document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * (pdfWidth - .01)}px; }`)
   }
 
-  let translate = 0
-
   const handleScrollDown = () => {
-    pdfRef && currentPage < pdfRef.numPages && setCurrentPage(currentPage + 1);
-    let pages = document.getElementsByClassName('pageContainer')
-    // translate = translate + window.innerHeight - 81
-    translate = translate + pages[0].offsetHeight
-    for (let page of pages) {
-      page.style.transform = `translateY(-${translate}px)`
+    if(currentPage < pdfRef.numPages) {
+      setCurrentPage(currentPage + 1);
+      let pages = document.getElementsByClassName('pageContainer')
+
+      setTranslate(translate + pages[0].offsetHeight)
+
+      for (let page of pages) {
+        page.style.transform = `translateY(-${translate + pages[0].offsetHeight}px)`
+      }
     }
   }
 
   const handleScrollUp = () => {
-    currentPage > 1 && setCurrentPage(currentPage - 1);
-    let pages = document.getElementsByClassName('pageContainer')
-    // translate = translate - window.innerHeight + 81
-    translate = translate - pages[0].offsetHeight
-    for (let page of pages) {
-      page.style.transform = `translateY(-${translate}px)`
+    if(currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      let pages = document.getElementsByClassName('pageContainer')
+
+      setTranslate(translate - pages[0].offsetHeight)
+
+      for (let page of pages) {
+        page.style.transform = `translateY(-${translate - pages[0].offsetHeight}px)`
+      }
     }
   }
 
@@ -125,6 +127,10 @@ export default function More() {
     let newList = canvasHandlers
     newList[index] = events
     setHandlers(newList)
+  }
+
+  const save = () => {
+    canvasHandlers[currentPage].saveCanvas()
   }
 
   const clear = () => {
@@ -168,9 +174,23 @@ export default function More() {
   return (
     <div className='interface' >
       <div className='toolBar' >
-        <div className='file group' >
 
+        <div className='file group' >
+          <label className='fileLabel'>
+            <input
+              className='fileSelect'
+              type='file'
+              onChange={getFile}
+            ></input>
+            <img src={file} alt='file' className='icon fileIcon'/>
+          </label>
+          <div className='fileName' >
+            <span>{fileName}</span>
+            <br/>
+            <span className='pageNum' >{'Page: ' + currentPage}</span>
+          </div>
         </div>
+
         <div className='mainTools' >
           <div className='music group'
                onMouseOver={() => {handleMarginStretch('music', true)}}
@@ -187,6 +207,7 @@ export default function More() {
             <img src={pencil} alt='pencil' className='icon firstIcon' onClick={draw}/>
             <img src={eraser} alt='eraser' className='icon' onClick={erase} />
             <img src={trash} alt='trash' className='icon' onClick={clear}/>
+            <img src={disk} alt='save' className='icon' onClick={save}/>
             <img src={toolBox} alt='trash' className='groupIcon icon'/>
           </div>
 
@@ -202,30 +223,23 @@ export default function More() {
 
 
 
-      <div className='arrowContainer'>
+      {/* <div className='arrowContainer'>
         <button className='switchMode' onClick={switchMode} >
         Switch Mode
         </button>
-      </div>
+      </div> */}
 
       <div className='pdfDisplay' >
-        {url && !mode && <PdfViewer addHandlers={addHandlers} pdfWidth={pdfWidth} currentPage={currentPage} pdfRef={pdfRef} renderPdf={renderPdf} />}
+        {/* {url && !mode && <PdfViewer addHandlers={addHandlers} pdfWidth={pdfWidth} currentPage={currentPage} pdfRef={pdfRef} renderPdf={renderPdf} />} */}
 
         <div
-          style={{'height': `${window.innerHeight - 81}px`}}
+          style={{'height': `${window.innerHeight - 100}px`}}
           className='scrollControl'>
-            {pageArr && mode && pageArr.map((pageNum, index) => {
-              return (<ViewOnly pdfWidth={pdfWidth} pageNum={pageNum} pdfRef={pdfRef} key={index} renderPdf={renderPdf} />)
+            {pageArr && pageArr.map((pageNum, index) => {
+              return (<ViewOnly addHandlers={addHandlers} pdfWidth={pdfWidth} pageNum={pageNum} pdfRef={pdfRef} key={index} renderPdf={renderPdf} />)
             })}
         </div>
-
       </div>
-      <input
-        type='file'
-        title='file input'
-        id='fileInput'
-        onChange={getFile}
-      ></input>
     </div>
   )
 }

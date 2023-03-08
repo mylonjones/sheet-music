@@ -74,6 +74,7 @@ body {
 .pageContainer {
 
   transition: transform 5s linear;
+  transform: translateY(0px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,4 +106,24 @@ body {
   margin: auto;
   position: absolute;
   left: 9vw;
+}
+
+.fileSelect {
+  display: none;
+}
+
+.fileIcon {
+  margin: 0;
+  opacity: 1;
+}
+
+.fileName {
+  font-size: large;
+  font-weight: bold;
+  text-align: left;
+  margin-left: 30px;
+}
+
+.pageNum {
+  font-weight: normal;
 }
