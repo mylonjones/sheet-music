@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 
-export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandlers }){
+export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandlers, enableDraw }){
 
   const [canvas, setCanvas] = useState()
   const [ctx, setCtx] =  useState()
@@ -69,6 +69,8 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
       }
     }, {passive: false});
 
+
+    //send handlers to parent component
     addHandlers({
       handleErase,
       handleDraw,
@@ -81,38 +83,43 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
   let drawing = false
 
   function getMousePos(e) {
-    let touch = e.touches && e.touches[0]
-    let offsetLeft = document.getElementsByClassName('sheetMusic')[0].offsetLeft
-
-    let offsetTop = document.getElementsByClassName('pageContainer')[0].offsetTop
+    let touch = (e.touches && e.touches[0]) || e
+    let offset = e.target.getBoundingClientRect()
 
     return {
-      x: ((e.clientX || touch.clientX) - offsetLeft) / pdfWidth, y: ((e.clientY || touch.clientY) - offsetTop + window.scrollY) / pdfWidth
+      x: (touch.clientX - offset.left) / pdfWidth,
+      y: (touch.clientY - offset.top + window.scrollY) / pdfWidth
     }
   }
 
   function startPosition(e){
-    drawing = true
-    draw(e)
+    if (enableDraw) {
+      drawing = true
+      draw(e)
+    }
   }
 
   function finishedPosition(e) {
-    drawing = false
-    ctx.beginPath()
+    if (enableDraw) {
+      drawing = false
+      ctx.beginPath()
+    }
   }
 
   function draw(e) {
-    if(!drawing) return
-    let position = getMousePos(e)
+    if (enableDraw) {
+      if(!drawing) return
+      let position = getMousePos(e)
 
-    ctx.lineWidth = lineWidth
-    ctx.lineCap = 'round'
+      ctx.lineWidth = lineWidth
+      ctx.lineCap = 'round'
 
-    ctx.lineTo(position.x, position.y)
-    ctx.stroke()
+      ctx.lineTo(position.x, position.y)
+      ctx.stroke()
 
-    ctx.beginPath()
-    ctx.moveTo(position.x, position.y)
+      ctx.beginPath()
+      ctx.moveTo(position.x, position.y)
+    }
   }
 
 

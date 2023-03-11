@@ -31,9 +31,13 @@ export default function More() {
 
   const [canvasHandlers, setHandlers] = useState([])
 
-  const [translate, setTranslate] = useState(0)
-
   const [fileName, setFileName] = useState('')
+
+  const [currentActiveGroup, setCurrentActiveGroup] = useState(null)
+
+  const [enableDraw, setEnableDraw] = useState(false)
+  const [enablePages, setEnablePages] = useState(false)
+  const [enableAdjust, setEnableAdjust] = useState(false)
 
   useEffect(() => { url && loadPdf(url, setPdfRef) }, [url]);
 
@@ -46,6 +50,8 @@ export default function More() {
       setPageArr(arr)
     }
   }, [pdfRef])
+
+
 
   async function getFile(e) {
 
@@ -85,40 +91,41 @@ export default function More() {
   }, [])
 
   const widthUp = () => {
-    setPdfWidth(pdfWidth + .01)
-    document.querySelector('style').sheet.deleteRule(0)
-    document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * (pdfWidth + .01)}px; }`)
+    if (enableAdjust) {
+      setPdfWidth(pdfWidth + .01)
+      document.querySelector('style').sheet.deleteRule(0)
+      document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * (pdfWidth + .01)}px; }`)
+    }
   }
 
   const widthDown = () => {
-    setPdfWidth(pdfWidth - .01)
-    document.querySelector('style').sheet.deleteRule(0)
-    document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * (pdfWidth - .01)}px; }`)
+    if (enableAdjust) {
+      setPdfWidth(pdfWidth - .01)
+      document.querySelector('style').sheet.deleteRule(0)
+      document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * (pdfWidth - .01)}px; }`)
+    }
+  }
+
+  const getPosition = (num) => {
+    const pages = [...document.getElementsByClassName('pageContainer')]
+    let breakpoints = pages.map((page) => page.offsetHeight)
+
+    return breakpoints.slice(0, num).reduce((a, b) => (a + b), 0)
   }
 
   const handleScrollDown = () => {
-    if(currentPage < pdfRef.numPages) {
+    if(enablePages && (currentPage < pdfRef.numPages)) {
+      let display = document.getElementsByClassName('pdfDisplay')[0]
+      display.style.transform = `translateY(-${getPosition(currentPage)}px)`
       setCurrentPage(currentPage + 1);
-      let pages = document.getElementsByClassName('pageContainer')
-
-      setTranslate(translate + pages[0].offsetHeight)
-
-      for (let page of pages) {
-        page.style.transform = `translateY(-${translate + pages[0].offsetHeight}px)`
-      }
     }
   }
 
   const handleScrollUp = () => {
-    if(currentPage > 1) {
+    if(enablePages && (currentPage > 1)) {
+      let display = document.getElementsByClassName('pdfDisplay')[0]
+      display.style.transform = `translateY(-${getPosition(currentPage - 2)}px)`
       setCurrentPage(currentPage - 1);
-      let pages = document.getElementsByClassName('pageContainer')
-
-      setTranslate(translate - pages[0].offsetHeight)
-
-      for (let page of pages) {
-        page.style.transform = `translateY(-${translate - pages[0].offsetHeight}px)`
-      }
     }
   }
 
@@ -130,52 +137,71 @@ export default function More() {
   }
 
   const save = () => {
-    canvasHandlers[currentPage].saveCanvas()
+    enableDraw && canvasHandlers[currentPage].saveCanvas()
   }
 
   const clear = () => {
-    canvasHandlers[currentPage].clearCanvas()
+    enableDraw && canvasHandlers[currentPage].clearCanvas()
   }
 
   const erase = () => {
-    canvasHandlers[currentPage].handleErase()
+    enableDraw && canvasHandlers[currentPage].handleErase()
   }
 
   const draw = () => {
-    canvasHandlers[currentPage].handleDraw()
+    enableDraw && canvasHandlers[currentPage].handleDraw()
   }
 
   //toolbar icon transition handlers
-  const handleMarginStretch = (target, stretch) => {
+  const handleMarginStretch = (target) => {
+
+
     let group = document.querySelector('.' + target)
     let firstIcon = group.children[0]
     let specificIcons = group.children
     let lastIcon = group.children[group.children.length - 1]
-    if (stretch) {
-      group.style.backgroundColor = 'black'
-      for(let icon of specificIcons) {
-        icon.style.opacity = '1'
-        icon.style.marginLeft = '15px'
-      }
-      firstIcon.style.marginLeft = '0'
-      lastIcon.style.opacity = 0
-      lastIcon.style.marginLeft = '-50px'
-    } else {
-      group.style.backgroundColor = 'white'
-      for(let icon of specificIcons) {
-        icon.style.opacity = '0'
-        icon.style.marginLeft = '-50px'
-      }
-      firstIcon.style.marginLeft = '0'
-      lastIcon.style.opacity = 1
+
+    group.style.backgroundColor = 'black'
+    for(let icon of specificIcons) {
+      icon.style.opacity = '1'
+      icon.style.marginLeft = '15px'
     }
+    firstIcon.style.marginLeft = '0'
+    lastIcon.style.opacity = 0
+    lastIcon.style.marginLeft = '-50px'
+
+    currentActiveGroup && (currentActiveGroup !== target) &&handleShrink(currentActiveGroup)
+    setCurrentActiveGroup(target)
+
+    if (target === 'draw') setEnableDraw(true)
+    if (target === 'music') setEnablePages(true)
+    if (target === 'zoom') setEnableAdjust(true)
+  }
+
+  const handleShrink = (target) => {
+    let group = document.querySelector('.' + target)
+    let firstIcon = group.children[0]
+    let specificIcons = group.children
+    let lastIcon = group.children[group.children.length - 1]
+
+    group.style.backgroundColor = 'white'
+    for(let icon of specificIcons) {
+      icon.style.opacity = '0'
+      icon.style.marginLeft = '-50px'
+    }
+    firstIcon.style.marginLeft = '0'
+    lastIcon.style.opacity = 1
+
+    if (target === 'draw') setEnableDraw(false)
+    if (target === 'music') setEnablePages(false)
+    if (target === 'zoom') setEnableAdjust(false)
   }
 
   return (
     <div className='interface' >
       <div className='toolBar' >
 
-        <div className='file group' >
+        <div className='file' >
           <label className='fileLabel'>
             <input
               className='fileSelect'
@@ -193,8 +219,7 @@ export default function More() {
 
         <div className='mainTools' >
           <div className='music group'
-               onMouseOver={() => {handleMarginStretch('music', true)}}
-               onMouseLeave={() => {handleMarginStretch('music', false)}}>
+               onClick={() => {handleMarginStretch('music')}}>
             <img src={down} alt='down' className='icon firstIcon' onClick={handleScrollDown}/>
             <img src={up} alt='up' className='icon' onClick={handleScrollUp}/>
             <img src={metronome} alt='metronome' className='icon'/>
@@ -202,8 +227,7 @@ export default function More() {
           </div>
 
           <div className='draw group'
-               onMouseOver={() => {handleMarginStretch('draw', true)}}
-               onMouseLeave={() => {handleMarginStretch('draw', false)}}>
+               onClick={() => {handleMarginStretch('draw')}}>
             <img src={pencil} alt='pencil' className='icon firstIcon' onClick={draw}/>
             <img src={eraser} alt='eraser' className='icon' onClick={erase} />
             <img src={trash} alt='trash' className='icon' onClick={clear}/>
@@ -212,8 +236,7 @@ export default function More() {
           </div>
 
           <div className='zoom group'
-              onMouseOver={() => {handleMarginStretch('zoom', true)}}
-              onMouseLeave={() => {handleMarginStretch('zoom', false)}}>
+              onClick={() => {handleMarginStretch('zoom')}}>
             <img src={zoomIn} alt='zoomIn' className='icon firstIcon' onClick={widthUp}/>
             <img src={zoomOut} alt='zoomOut' className='icon' onClick={widthDown}/>
             <img src={zoom} alt='zoom' className='groupIcon icon'/>
@@ -223,20 +246,18 @@ export default function More() {
 
 
 
-      {/* <div className='arrowContainer'>
-        <button className='switchMode' onClick={switchMode} >
-        Switch Mode
-        </button>
-      </div> */}
-
-      <div className='pdfDisplay' >
-        {/* {url && !mode && <PdfViewer addHandlers={addHandlers} pdfWidth={pdfWidth} currentPage={currentPage} pdfRef={pdfRef} renderPdf={renderPdf} />} */}
-
-        <div
-          style={{'height': `${window.innerHeight - 100}px`}}
-          className='scrollControl'>
+      <div style={{'height': `${window.innerHeight - 100}px`}}
+          className='scrollControl' >
+        <div className='pdfDisplay' >
             {pageArr && pageArr.map((pageNum, index) => {
-              return (<ViewOnly addHandlers={addHandlers} pdfWidth={pdfWidth} pageNum={pageNum} pdfRef={pdfRef} key={index} renderPdf={renderPdf} />)
+              return (<ViewOnly
+                addHandlers={addHandlers}
+                pdfWidth={pdfWidth}
+                pageNum={pageNum}
+                pdfRef={pdfRef}
+                key={index}
+                enableDraw={enableDraw}
+                renderPdf={renderPdf} />)
             })}
         </div>
       </div>

@@ -78,6 +78,8 @@ body {
 
 .scrollControl {
   overflow-y: hidden;
+  -webkit-transform: translateY(0px);
+          transform: translateY(0px);
 }
 
 .pageContainer {
@@ -102,6 +104,10 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+canvas {
+  margin-bottom: -3px;
 }
 
 .arrowContainer {
@@ -129,6 +135,26 @@ body {
   left: 9vw;
 }
 
+.file {
+  -webkit-transition: background-color .35s linear;
+  transition: background-color .35s linear;
+  height: 70px;
+  background-color: white;
+  border-radius: 16px;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  padding: 0 10px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-line-pack: center;
+      align-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
 .fileSelect {
   display: none;
 }
@@ -147,5 +173,12 @@ body {
 
 .pageNum {
   font-weight: normal;
+}
+
+.pdfDisplay {
+  -webkit-transition: -webkit-transform 5s linear;
+  transition: -webkit-transform 5s linear;
+  transition: transform 5s linear;
+  transition: transform 5s linear, -webkit-transform 5s linear;
 }
 /*# sourceMappingURL=style.css.map */
