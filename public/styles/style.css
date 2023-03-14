@@ -83,6 +83,7 @@ body {
 }
 
 .pageContainer {
+  overflow: hidden;
   -webkit-transition: -webkit-transform 5s linear;
   transition: -webkit-transform 5s linear;
   transition: transform 5s linear;
@@ -180,5 +181,13 @@ canvas {
   transition: -webkit-transform 5s linear;
   transition: transform 5s linear;
   transition: transform 5s linear, -webkit-transform 5s linear;
+}
+
+.eraserSpot {
+  width: 0;
+  height: 0;
+  border: 5px solid pink;
+  border-radius: 50%;
+  position: absolute;
 }
 /*# sourceMappingURL=style.css.map */

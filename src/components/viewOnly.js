@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 
-export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandlers, enableDraw }){
+export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandlers, enableDraw, enableAdjust }){
 
   const [canvas, setCanvas] = useState()
   const [ctx, setCtx] =  useState()
@@ -10,6 +10,11 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
   const [ctx2, setCtx2] =  useState()
   const canvasRef2 = useRef();
 
+  const [translate, setTranslate] = useState(0)
+  const [grabing, setGrabing] = useState(false)
+  const [grabPosition, setGrabPos] = useState(0)
+  const [cover, setCover] = useState(0)
+  const [covering, setCovering] = useState(true)
 
   let lineWidth = 1.51
 
@@ -75,7 +80,8 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
       handleErase,
       handleDraw,
       saveCanvas,
-      clearCanvas
+      clearCanvas,
+      tuckSwitch
     }, pageNum)
 
   })
@@ -122,8 +128,6 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
     }
   }
 
-
-
   const handleErase = () => {
     ctx.globalCompositeOperation = 'destination-out'
     lineWidth = 10
@@ -138,15 +142,62 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
     localStorage.setItem('savedCanvas' + pageNum, canvas.toDataURL('image/png'))
   }
 
-
   const clearCanvas = () => {
     localStorage.removeItem('savedCanvas' + pageNum)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  const tuckSwitch = () => {
+    if(covering) {
+      setCovering(false)
+    } else {
+      setCovering(true)
+    }
+  }
+
+
+  const grabPage = (e) => {
+    if(enableAdjust) {
+      let touch = (e.touches && e.touches[0]) || e
+      if (covering) {
+        setGrabPos(touch.clientY - cover)
+      } else {
+        setGrabPos(touch.clientY - translate)
+      }
+      setGrabing(true)
+    }
+  }
+
+  const dragPage = (e) => {
+    if (grabing && enableAdjust) {
+      let touch = (e.touches && e.touches[0]) || e
+      if (covering) {
+        setCover(touch.clientY - grabPosition)
+      } else {
+        setTranslate(touch.clientY - grabPosition)
+      }
+    }
+  }
+
+  const letPageGo = () => {
+    if(enableAdjust) {
+      setGrabing(false)
+    }
+  }
+
+
   return (
-    <div className='pageContainer' id={`page${pageNum}`} >
-      <div className='sheetMusic' >
+    <div className='pageContainer'
+      id={`page${pageNum}`}
+      style={{'margin-bottom': `${translate}px`,
+              'margin-top': `${cover}px`}}
+      >
+      <div className='sheetMusic'
+        style={{'transform': `translateY(${translate}px)`}}
+        onMouseDown={grabPage}
+        onMouseMove={dragPage}
+        onMouseUp={letPageGo}
+        >
         <canvas ref={canvasRef2} className='canvas' />
         <canvas
           className='drawing canvas'

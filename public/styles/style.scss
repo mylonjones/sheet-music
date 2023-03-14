@@ -74,6 +74,7 @@ body {
 }
 
 .pageContainer {
+  overflow: hidden;
 
   transition: transform 5s linear;
   transform: translateY(0px);
@@ -149,4 +150,12 @@ canvas {
 .pdfDisplay {
 
   transition: transform 5s linear;
+}
+
+.eraserSpot {
+  width: 0;
+  height: 0;
+  border: 5px solid pink;
+  border-radius: 50%;
+  position: absolute;
 }

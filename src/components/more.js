@@ -17,6 +17,8 @@ import treble from '../icons/treble-clef.png'
 import zoomIn from '../icons/zoom-in.png'
 import zoomOut from '../icons/zoom-out.png'
 import zoom from '../icons/search.png'
+import over from '../icons/over.png'
+import under from '../icons/under.png'
 
 import file from '../icons/file.svg'
 
@@ -38,6 +40,8 @@ export default function More() {
   const [enableDraw, setEnableDraw] = useState(false)
   const [enablePages, setEnablePages] = useState(false)
   const [enableAdjust, setEnableAdjust] = useState(false)
+
+  const [tuckImg, setTuckImg] = useState(over)
 
   useEffect(() => { url && loadPdf(url, setPdfRef) }, [url]);
 
@@ -137,20 +141,32 @@ export default function More() {
   }
 
   const save = () => {
-    enableDraw && canvasHandlers[currentPage].saveCanvas()
+    enableDraw && canvasHandlers.map(handler => handler.saveCanvas())
   }
 
   const clear = () => {
-    enableDraw && canvasHandlers[currentPage].clearCanvas()
+    enableDraw && canvasHandlers.map(handler => handler.clearCanvas())
   }
 
   const erase = () => {
-    enableDraw && canvasHandlers[currentPage].handleErase()
+    enableDraw && canvasHandlers.map(handler => handler.handleErase())
   }
 
   const draw = () => {
-    enableDraw && canvasHandlers[currentPage].handleDraw()
+    enableDraw && canvasHandlers.map(handler => handler.handleDraw())
   }
+
+  const tuckSwitch = () => {
+    if (enableAdjust) {
+      if(tuckImg === over) {
+        setTuckImg(under)
+      } else {
+        setTuckImg(over)
+      }
+      canvasHandlers.map(handler => handler.tuckSwitch())
+    }
+  }
+
 
   //toolbar icon transition handlers
   const handleMarginStretch = (target) => {
@@ -237,7 +253,8 @@ export default function More() {
 
           <div className='zoom group'
               onClick={() => {handleMarginStretch('zoom')}}>
-            <img src={zoomIn} alt='zoomIn' className='icon firstIcon' onClick={widthUp}/>
+            <img src={tuckImg} alt='tuck' className='icon firstIcon' onClick={tuckSwitch} />
+            <img src={zoomIn} alt='zoomIn' className='icon' onClick={widthUp}/>
             <img src={zoomOut} alt='zoomOut' className='icon' onClick={widthDown}/>
             <img src={zoom} alt='zoom' className='groupIcon icon'/>
           </div>
@@ -257,6 +274,7 @@ export default function More() {
                 pdfRef={pdfRef}
                 key={index}
                 enableDraw={enableDraw}
+                enableAdjust={enableAdjust}
                 renderPdf={renderPdf} />)
             })}
         </div>
