@@ -22,12 +22,25 @@ import under from '../icons/under.png'
 
 import file from '../icons/file.svg'
 
+let mobile
+
+if (navigator.userAgent.match(/Android/i)
+  || navigator.userAgent.match(/webOS/i)
+  || navigator.userAgent.match(/iPhone/i)
+  || navigator.userAgent.match(/iPad/i)
+  || navigator.userAgent.match(/iPod/i)
+  || navigator.userAgent.match(/BlackBerry/i)
+  || navigator.userAgent.match(/Windows Phone/i)) {
+      mobile = true ;
+} else {
+  mobile = false ;
+}
+
 export default function More() {
   const [url, setUrl] = useState();
 
   const [pdfRef, setPdfRef] = useState();
   const [pageArr, setPageArr] = useState();
-  const [currentPage, setCurrentPage] = useState(1)
 
   const [pdfWidth, setPdfWidth] = useState(.9)
 
@@ -42,6 +55,9 @@ export default function More() {
   const [enableAdjust, setEnableAdjust] = useState(false)
 
   const [tuckImg, setTuckImg] = useState(over)
+
+  const [scrollLevel, setScrollLevel] = useState(0)
+  // const [scrollSpeed, setScrollSpeed] = useState(5)
 
   useEffect(() => { url && loadPdf(url, setPdfRef) }, [url]);
 
@@ -110,26 +126,57 @@ export default function More() {
     }
   }
 
-  const getPosition = (num) => {
-    const pages = [...document.getElementsByClassName('pageContainer')]
-    let breakpoints = pages.map((page) => page.offsetHeight)
+  //add listener for key press to change page
+  useEffect(() => {
+    console.log(document)
+    document.addEventListener('keydown', handleKeyScroll)
+    return () => {
+      document.removeEventListener("keydown", handleKeyScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enablePages, scrollLevel])
 
-    return breakpoints.slice(0, num).reduce((a, b) => (a + b), 0)
+  const handleKeyScroll = (e) => {
+    let letters = 'qwertyuiopasdfghjklzxcvbnm'
+    let upKeys = letters.split('')
+    upKeys.push('ArrowUp')
+    let downKeys = [' ', 'ArrowDown']
+
+    if (upKeys.includes(e.key)) {
+      handleScrollUp()
+    } else if (downKeys.includes(e.key)) {
+      handleScrollDown()
+    }
+  }
+
+  const handleTapScroll = (e) => {
+    let touch = (e.touches && e.touches[0]) || e
+    let middle = e.target.offsetHeight/2
+
+    if (touch.clientY < middle) {
+      handleScrollUp()
+    } else {
+      handleScrollDown()
+    }
   }
 
   const handleScrollDown = () => {
-    if(enablePages && (currentPage < pdfRef.numPages)) {
+    if(enablePages) {
       let display = document.getElementsByClassName('pdfDisplay')[0]
-      display.style.transform = `translateY(-${getPosition(currentPage)}px)`
-      setCurrentPage(currentPage + 1);
+      let nextPage = scrollLevel + (window.innerHeight - 100)
+      if(nextPage > display.offsetHeight) nextPage = scrollLevel
+      display.style.transform = `translateY(-${nextPage}px)`
+      setScrollLevel(nextPage)
     }
   }
 
   const handleScrollUp = () => {
-    if(enablePages && (currentPage > 1)) {
+    if(enablePages) {
       let display = document.getElementsByClassName('pdfDisplay')[0]
-      display.style.transform = `translateY(-${getPosition(currentPage - 2)}px)`
-      setCurrentPage(currentPage - 1);
+      let lastPage = scrollLevel - (window.innerHeight - 100)
+      if(lastPage < 0) lastPage = 0
+      display.style.transform = `translateY(-${lastPage}px)`
+      setScrollLevel(lastPage)
     }
   }
 
@@ -213,6 +260,12 @@ export default function More() {
     if (target === 'zoom') setEnableAdjust(false)
   }
 
+  const handleScrollSpeed = (e) => {
+    // setScrollSpeed(e.target.value)
+    document.querySelector('.pdfDisplay')
+      .style.transition = `transform ${e.target.value}s linear`
+  }
+
   return (
     <div className='interface' >
       <div className='toolBar' >
@@ -229,7 +282,7 @@ export default function More() {
           <div className='fileName' >
             <span>{fileName}</span>
             <br/>
-            <span className='pageNum' >{'Page: ' + currentPage}</span>
+            {/* <span className='pageNum' >{'Page: ' + currentPage}</span> */}
           </div>
         </div>
 
@@ -238,6 +291,14 @@ export default function More() {
                onClick={() => {handleMarginStretch('music')}}>
             <img src={down} alt='down' className='icon firstIcon' onClick={handleScrollDown}/>
             <img src={up} alt='up' className='icon' onClick={handleScrollUp}/>
+            <select className='icon' onChange={handleScrollSpeed}>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+            </select>
             <img src={metronome} alt='metronome' className='icon'/>
             <img src={treble} alt='treble' className='groupIcon icon'/>
           </div>
@@ -263,8 +324,11 @@ export default function More() {
 
 
 
-      <div style={{'height': `${window.innerHeight - 100}px`}}
-          className='scrollControl' >
+      <div style={{'height': `${window.innerHeight - 90}px`}}
+          className='scrollControl'
+          onClick={handleTapScroll}
+          onTouchStart={handleTapScroll}
+          >
         <div className='pdfDisplay' >
             {pageArr && pageArr.map((pageNum, index) => {
               return (<ViewOnly
@@ -279,6 +343,7 @@ export default function More() {
             })}
         </div>
       </div>
+      {mobile && <div style={{'height': '20px'}}/>}
     </div>
   )
 }

@@ -189,14 +189,17 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
   return (
     <div className='pageContainer'
       id={`page${pageNum}`}
-      style={{'margin-bottom': `${translate}px`,
-              'margin-top': `${cover}px`}}
+      style={{'marginBottom': `${translate}px`,
+              'marginTop': `${cover}px`}}
       >
       <div className='sheetMusic'
         style={{'transform': `translateY(${translate}px)`}}
         onMouseDown={grabPage}
         onMouseMove={dragPage}
         onMouseUp={letPageGo}
+        onTouchStart={grabPage}
+        onTouchMove={dragPage}
+        onTouchEnd={letPageGo}
         >
         <canvas ref={canvasRef2} className='canvas' />
         <canvas
