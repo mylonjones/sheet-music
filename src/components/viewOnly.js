@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 
-export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandlers, enableDraw, enableAdjust }){
+export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandlers, enableDraw, enableAdjust, fileName }){
 
   const [canvas, setCanvas] = useState()
   const [ctx, setCtx] =  useState()
@@ -26,8 +26,8 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
   }
 
   const renderPage = useCallback((pageNum, pdf=pdfRef) => {
-    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2)
-  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2]);
+    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, fileName)
+  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2, fileName]);
 
   useEffect(() => {
     setCanvas(canvasRef.current)
@@ -42,7 +42,7 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
     lineWidth = 1.51
 
     const intervalID = setInterval(()=>{
-      if(canvasRef.current.width !== '') {
+      if(canvasRef.current && (canvasRef.current.width !== '')) {
         if(document.querySelector('style').sheet.cssRules[0].selectorText
         !== 'body') {
           document.querySelector('style').sheet.deleteRule(0)
@@ -139,11 +139,11 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
   }
 
   const saveCanvas = () => {
-    localStorage.setItem('savedCanvas' + pageNum, canvas.toDataURL('image/png'))
+    localStorage.setItem(fileName + pageNum, canvas.toDataURL('image/png'))
   }
 
   const clearCanvas = () => {
-    localStorage.removeItem('savedCanvas' + pageNum)
+    localStorage.removeItem(fileName + pageNum)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 

@@ -13,7 +13,7 @@ export function loadPdf(url, setPdfRef) {
   });
 }
 
-export function renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2) {
+export function renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, fileName) {
   pdf && pdf.getPage(pageNum).then(function(page) {
     let viewport = page.getViewport({scale: 1});
     //pdf width
@@ -23,7 +23,7 @@ export function renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2) {
     const renderContext = { canvasContext: ctx2, viewport };
     if(ctx2) {
       page.render(renderContext)
-      const savedCanvas = localStorage.getItem('savedCanvas' + pageNum)
+      const savedCanvas = localStorage.getItem( fileName + pageNum)
       if(savedCanvas) img.src = savedCanvas
 
       canvas.height = viewport.height;

@@ -22,6 +22,8 @@ import under from '../icons/under.png'
 
 import file from '../icons/file.svg'
 
+import song from '../Clair_de_Lune.pdf'
+
 let mobile
 
 if (navigator.userAgent.match(/Android/i)
@@ -46,7 +48,7 @@ export default function More() {
 
   const [canvasHandlers, setHandlers] = useState([])
 
-  const [fileName, setFileName] = useState('')
+  const [fileName, setFileName] = useState('Clair_de_Lune')
 
   const [currentActiveGroup, setCurrentActiveGroup] = useState(null)
 
@@ -74,40 +76,44 @@ export default function More() {
 
 
   async function getFile(e) {
-
     let file = e.target.files[0]
+    setFileName(e.target.value.slice(12, -4))
+    setUrl(URL.createObjectURL(file))
 
-    try {
-      const root = await navigator.storage.getDirectory()
-      const musicDirectory = await root.getDirectoryHandle('musicDirectory', { 'create': true})
-      const fileHandle = await musicDirectory.getFileHandle('text.pdf', {'create': true})
+    // FOR SAVING FILES TO DEVICE
+    // try {
+    //   const root = await navigator.storage.getDirectory()
+    //   const musicDirectory = await root.getDirectoryHandle('musicDirectory', { 'create': true})
+    //   const fileHandle = await musicDirectory.getFileHandle('text.pdf', {'create': true})
 
-      const stream = await fileHandle.createWritable()
-      await stream.write(file)
-      await stream.close()
+    //   const stream = await fileHandle.createWritable()
+    //   await stream.write(file)
+    //   await stream.close()
 
-      file = await fileHandle.getFile()
-      // await root.removeEntry(musicDirectory.name, {'recursive': true})
-    } catch (e) {
-      console.log(e)
-    } finally {
-      setFileName(e.target.value.slice(12, -4))
-      setUrl(URL.createObjectURL(file))
-    }
+    //   file = await fileHandle.getFile()
+    //   // await root.removeEntry(musicDirectory.name, {'recursive': true})
+    // } catch (e) {
+    //   console.log(e)
+    // } finally {
+    //   setFileName(e.target.value.slice(12, -4))
+    //   setUrl(URL.createObjectURL(file))
+    // }
   }
 
   useEffect(() => {
-    async function checkFileSystem() {
-      try {
-        const root = await navigator.storage.getDirectory()
-        const musicDirectory = await root.getDirectoryHandle('musicDirectory')
-        const fileHandle = await musicDirectory.getFileHandle('text.pdf')
-        setUrl(URL.createObjectURL(await fileHandle.getFile()))
-      } catch(e) {
-        console.log(e)
-      }
-    }
-     checkFileSystem()
+    setUrl(song)
+
+    // async function checkFileSystem() {
+    //   try {
+    //     const root = await navigator.storage.getDirectory()
+    //     const musicDirectory = await root.getDirectoryHandle('musicDirectory')
+    //     const fileHandle = await musicDirectory.getFileHandle('text.pdf')
+    //     setUrl(URL.createObjectURL(await fileHandle.getFile()))
+    //   } catch(e) {
+    //     console.log(e)
+    //   }
+    // }
+    //  checkFileSystem()
   }, [])
 
   const widthUp = () => {
@@ -128,7 +134,6 @@ export default function More() {
 
   //add listener for key press to change page
   useEffect(() => {
-    console.log(document)
     document.addEventListener('keydown', handleKeyScroll)
     return () => {
       document.removeEventListener("keydown", handleKeyScroll);
@@ -188,11 +193,11 @@ export default function More() {
   }
 
   const save = () => {
-    enableDraw && canvasHandlers.map(handler => handler.saveCanvas())
+    enableDraw && canvasHandlers.map(handler => handler.saveCanvas(fileName))
   }
 
   const clear = () => {
-    enableDraw && canvasHandlers.map(handler => handler.clearCanvas())
+    enableDraw && canvasHandlers.map(handler => handler.clearCanvas(fileName))
   }
 
   const erase = () => {
@@ -291,11 +296,11 @@ export default function More() {
                onClick={() => {handleMarginStretch('music')}}>
             <img src={down} alt='down' className='icon firstIcon' onClick={handleScrollDown}/>
             <img src={up} alt='up' className='icon' onClick={handleScrollUp}/>
-            <select className='icon' onChange={handleScrollSpeed}>
+            <select className='icon' defaultValue='5' onChange={handleScrollSpeed}>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
-              <option value="5" selected>5</option>
+              <option value="5">5</option>
               <option value="6">6</option>
               <option value="7">7</option>
             </select>
@@ -339,7 +344,8 @@ export default function More() {
                 key={index}
                 enableDraw={enableDraw}
                 enableAdjust={enableAdjust}
-                renderPdf={renderPdf} />)
+                renderPdf={renderPdf}
+                fileName={fileName} />)
             })}
         </div>
       </div>
