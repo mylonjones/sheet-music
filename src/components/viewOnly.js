@@ -29,6 +29,16 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
     renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, fileName)
   }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2, fileName]);
 
+
+  useEffect(() => {
+    let positions = JSON.parse(localStorage.getItem(fileName + pageNum + 'Position'))
+    if(positions) {
+      setCover(positions[0] || 0)
+      setTranslate(positions[1] || 0)
+    }
+  }, [fileName, pageNum])
+
+
   useEffect(() => {
     setCanvas(canvasRef.current)
     setCtx(canvasRef.current.getContext('2d'))
@@ -140,10 +150,14 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
 
   const saveCanvas = () => {
     localStorage.setItem(fileName + pageNum, canvas.toDataURL('image/png'))
+    localStorage.setItem(fileName + pageNum + 'Position', JSON.stringify([cover, translate]))
   }
 
   const clearCanvas = () => {
     localStorage.removeItem(fileName + pageNum)
+    localStorage.removeItem(fileName + pageNum + 'Position')
+    setCover(0)
+    setTranslate(0)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
