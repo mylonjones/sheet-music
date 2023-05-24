@@ -25,9 +25,9 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
     ctx.drawImage(img,0,0, canvas.width, canvas.height)
   }
 
-  const renderPage = useCallback((pageNum, pdf=pdfRef) => {
-    renderPdf(pageNum, pdf, canvas, canvas2, img, ctx2, fileName)
-  }, [renderPdf, pdfRef, canvas, img, canvas2, ctx2, fileName]);
+  const renderPage = useCallback(() => {
+    renderPdf(pageNum, pdfRef, canvas, canvas2, img, ctx2, fileName)
+  }, [renderPdf, pageNum, pdfRef, canvas, canvas2, img, ctx2, fileName]);
 
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
 
     setCanvas2(canvasRef2.current)
     setCtx2(canvasRef2.current.getContext('2d'))
-    renderPage(pageNum, pdfRef);
+    renderPage();
 
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,8 +62,11 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
       }
     }, 1000)
 
+    // console.log(pageNum)
+    // console.log(pdfRef)
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pdfRef, pageNum, renderPage]);
+  }, [renderPage]);
 
 
   useEffect(() => {

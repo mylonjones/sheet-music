@@ -39,12 +39,14 @@ if (navigator.userAgent.match(/Android/i)
 }
 
 export default function More() {
-  const [url, setUrl] = useState();
+  const [url, setUrl] = useState(song);
 
   const [pdfRef, setPdfRef] = useState();
   const [pageArr, setPageArr] = useState();
 
-  const [pdfWidth, setPdfWidth] = useState(.9)
+  let width = localStorage.getItem('Clair_de_LuneWidth') || .9
+
+  const [pdfWidth, setPdfWidth] = useState(width)
 
   const [canvasHandlers, setHandlers] = useState([])
 
@@ -77,7 +79,15 @@ export default function More() {
 
   async function getFile(e) {
     let file = e.target.files[0]
-    setFileName(e.target.value.slice(12, -4))
+    let name = e.target.value.slice(12, -4)
+
+    let width = localStorage.getItem(name + 'Width') || .9
+    setPdfWidth(width)
+    document.querySelector('style').sheet.deleteRule(0)
+    document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * (width)}px; }`)
+
+    setPageArr([])
+    setFileName(name)
     setUrl(URL.createObjectURL(file))
 
     // FOR SAVING FILES TO DEVICE
@@ -101,7 +111,12 @@ export default function More() {
   }
 
   useEffect(() => {
-    setUrl(song)
+
+    // setPageArr([])
+    // setFileName('Clair_de_Lune')
+    // setUrl(song)
+    // let width = localStorage.getItem('Clair_de_LuneWidth')
+    // width && setPdfWidth(width)
 
     // async function checkFileSystem() {
     //   try {
@@ -114,7 +129,7 @@ export default function More() {
     //   }
     // }
     //  checkFileSystem()
-  }, [])
+  }, [fileName])
 
   const widthUp = () => {
     if (enableAdjust) {
@@ -193,10 +208,12 @@ export default function More() {
   }
 
   const save = () => {
+    localStorage.setItem(fileName + 'Width', pdfWidth)
     enableDraw && canvasHandlers.map(handler => handler.saveCanvas(fileName))
   }
 
   const clear = () => {
+    localStorage.removeItem(fileName + 'Width')
     enableDraw && canvasHandlers.map(handler => handler.clearCanvas(fileName))
   }
 
