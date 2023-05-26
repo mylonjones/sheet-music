@@ -15,6 +15,7 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
   const [grabPosition, setGrabPos] = useState(0)
   const [cover, setCover] = useState(0)
   const [covering, setCovering] = useState(true)
+  const [erasing, setErasing] = useState(false)
 
   let lineWidth = 1.51
 
@@ -50,20 +51,6 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     lineWidth = 1.51
-
-    const intervalID = setInterval(()=>{
-      if(canvasRef.current && (canvasRef.current.width !== '')) {
-        if(document.querySelector('style').sheet.cssRules[0].selectorText
-        !== 'body') {
-          document.querySelector('style').sheet.deleteRule(0)
-        }
-        document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * pdfWidth}px; }`)
-        clearInterval(intervalID)
-      }
-    }, 1000)
-
-    // console.log(pageNum)
-    // console.log(pdfRef)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [renderPage]);
@@ -121,6 +108,15 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
   function finishedPosition(e) {
     if (enableDraw) {
       drawing = false
+
+      if (erasing) {
+        let position = getMousePos(e)
+        ctx.lineWidth = 15
+        ctx.globalCompositeOperation = 'destination-out'
+        ctx.lineTo(position.x, position.y)
+        ctx.stroke()
+      }
+
       ctx.beginPath()
     }
   }
@@ -133,22 +129,34 @@ export default function ViewOnly({renderPdf, pdfRef, pageNum, pdfWidth, addHandl
       ctx.lineWidth = lineWidth
       ctx.lineCap = 'round'
 
+      if (erasing) {
+        ctx.globalCompositeOperation = 'destination-out'
+        ctx.lineWidth = 15
+      }
+
       ctx.lineTo(position.x, position.y)
       ctx.stroke()
 
       ctx.beginPath()
       ctx.moveTo(position.x, position.y)
+
+      if (erasing) {
+        ctx.lineWidth = 13
+        ctx.globalCompositeOperation = 'source-over'
+        ctx.lineTo(position.x, position.y)
+        ctx.stroke()
+      }
     }
   }
 
   const handleErase = () => {
-    ctx.globalCompositeOperation = 'destination-out'
-    lineWidth = 10
+    setErasing(true)
+    ctx.strokeStyle = '#ff6699'
   }
 
   const handleDraw = () => {
-    ctx.globalCompositeOperation = 'source-over'
-    lineWidth = 1.51
+    setErasing(false)
+    ctx.strokeStyle = '#ffffff'
   }
 
   const saveCanvas = () => {

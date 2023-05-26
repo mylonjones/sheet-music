@@ -44,7 +44,7 @@ export default function More() {
   const [pdfRef, setPdfRef] = useState();
   const [pageArr, setPageArr] = useState();
 
-  let width = localStorage.getItem('Clair_de_LuneWidth') || .9
+  let width = Number(localStorage.getItem('Clair_de_LuneWidth')) || .9
 
   const [pdfWidth, setPdfWidth] = useState(width)
 
@@ -81,7 +81,7 @@ export default function More() {
     let file = e.target.files[0]
     let name = e.target.value.slice(12, -4)
 
-    let width = localStorage.getItem(name + 'Width') || .9
+    let width = Number(localStorage.getItem(name + 'Width')) || .9
     setPdfWidth(width)
     document.querySelector('style').sheet.deleteRule(0)
     document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * (width)}px; }`)
@@ -111,6 +111,14 @@ export default function More() {
   }
 
   useEffect(() => {
+    const intervalID = setInterval(()=>{
+      if(document.querySelector('style').sheet.cssRules[0].selectorText
+      !== 'body') {
+        document.querySelector('style').sheet.deleteRule(0)
+      }
+      document.querySelector('style').sheet.insertRule(`.canvas { width: ${window.innerWidth * Number(localStorage.getItem(fileName + 'Width')) || .9}px; }`)
+      clearInterval(intervalID)
+    }, 1000)
 
     // setPageArr([])
     // setFileName('Clair_de_Lune')
@@ -214,7 +222,9 @@ export default function More() {
 
   const clear = () => {
     localStorage.removeItem(fileName + 'Width')
-    enableDraw && canvasHandlers.map(handler => handler.clearCanvas(fileName))
+    if(window.confirm('Are you sure you want to erase all saved changes?')) {
+      enableDraw && canvasHandlers.map(handler => handler.clearCanvas(fileName))
+    }
   }
 
   const erase = () => {
@@ -317,6 +327,7 @@ export default function More() {
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
+              <option value="4">4</option>
               <option value="5">5</option>
               <option value="6">6</option>
               <option value="7">7</option>
